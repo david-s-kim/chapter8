@@ -1,11 +1,15 @@
 package com.example.chapter8
 
-import android.Manifest.permission.READ_EXTERNAL_STORAGE
+
+import android.Manifest
+import android.content.Intent
 import android.content.pm.PackageManager
 import android.net.Uri
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
+import android.view.Menu
+import android.view.MenuItem
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AlertDialog
@@ -27,14 +31,47 @@ class MainActivity : AppCompatActivity() {
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
+        binding.toolbar.apply {
+            title = "사진 가져오기"
+            setSupportActionBar(this)
+        }
+
         binding.loadImageButton.setOnClickListener {
             checkPermission()
         }
+        binding.navigateFrameActivityButton.setOnClickListener {
+            navigateToFrameActivity()
+        }
+
         initRecyclerView()
     }
 
+    override fun onCreateOptionsMenu(menu: Menu?): Boolean {
+        menuInflater.inflate(R.menu.main_menu, menu)
+        return true
+    }
+
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        return when(item.itemId){
+            R.id.action_add -> {
+                checkPermission()
+                true
+            }
+            else -> {
+                return super.onOptionsItemSelected(item)
+            }
+        }
+    }
+
+    private fun navigateToFrameActivity() {
+        val images = imageAdapter.currentList.filterIsInstance<ImageItems.Image>().map { it.uri.toString() }.toTypedArray()
+        val intent = Intent(this, FrameActivity::class.java)
+            .putExtra("images", images)
+        startActivity(intent)
+    }
+
     private fun initRecyclerView() {
-        imageAdapter = ImageAdapter(object : ImageAdapter.ItemClickListener{
+        imageAdapter = ImageAdapter(object : ImageAdapter.ItemClickListener {
             override fun onLoadMoreClick() {
                 checkPermission()
             }
@@ -49,12 +86,12 @@ class MainActivity : AppCompatActivity() {
         when {
             ContextCompat.checkSelfPermission(
                 this,
-                READ_EXTERNAL_STORAGE
+                Manifest.permission.READ_EXTERNAL_STORAGE
             ) == PackageManager.PERMISSION_GRANTED -> {
                 loadImage()
             }
             shouldShowRequestPermissionRationale(
-                READ_EXTERNAL_STORAGE
+                Manifest.permission.READ_EXTERNAL_STORAGE
             ) -> {
                 showPermissionInfoDialog()
             }
@@ -81,14 +118,14 @@ class MainActivity : AppCompatActivity() {
     private fun requestReadExternalStorage() {
         ActivityCompat.requestPermissions(
             this,
-            arrayOf(READ_EXTERNAL_STORAGE),
+            arrayOf(Manifest.permission.READ_EXTERNAL_STORAGE),
             REQUEST_READ_EXTERNAL_STORAGE
         )
     }
 
     private fun updateImages(uriList: List<Uri>) {
         Log.i("updateImages", "$uriList")
-        val images = uriList.map{ ImageItems.Image(it)}
+        val images = uriList.map { ImageItems.Image(it) }
         val updatedImages = imageAdapter.currentList.toMutableList().apply { addAll(images) }
         imageAdapter.submitList(updatedImages)
     }

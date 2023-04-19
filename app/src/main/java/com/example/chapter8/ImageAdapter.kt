@@ -78,7 +78,7 @@ sealed class ImageItems {
     object LoadMore : ImageItems()
 }
 
-class ImageViewHolder(val binding: ItemImageBinding) : RecyclerView.ViewHolder(binding.root) {
+class ImageViewHolder(private val binding: ItemImageBinding) : RecyclerView.ViewHolder(binding.root) {
     fun bind(item: ImageItems.Image) {
         binding.previewImageView.setImageURI(item.uri)
     }
@@ -88,6 +88,5 @@ class LoadMoreViewHolder(private val binding: ItemLoadMoreBinding) :
     RecyclerView.ViewHolder(binding.root) {
     fun bind(itemClickListener: ImageAdapter.ItemClickListener) {
         itemView.setOnClickListener { itemClickListener.onLoadMoreClick() }
-
     }
 }
